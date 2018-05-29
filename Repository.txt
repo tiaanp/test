@@ -1,0 +1,228 @@
+ var appXmlType = config.Formatters.XmlFormatter.SupportedMediaTypes.FirstOrDefault(t => t.MediaType == "application/xml");
+            config.Formatters.XmlFormatter.SupportedMediaTypes.Remove(appXmlType);
+
+            // Use camel case for JSON data.
+            config.Formatters.JsonFormatter.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+
+            //config.Formatters.JsonFormatter.SerializerSettings.PreserveReferencesHandling = Newtonsoft.Json.PreserveReferencesHandling.None;
+            config.Formatters.JsonFormatter.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Web.Http;
+using Test1.Domain.Entities;
+using Test1.Domain.Services;
+
+namespace Test1.Api.Controllers
+{
+    [RoutePrefix("api/[controller]/[action]")]
+    public class MoviesController : ApiController
+    {
+
+
+
+        public MoviesController()
+        {
+            this._MovieService = new MovieService();
+        }
+
+        [method:
+          HttpGet,
+          AllowAnonymous]
+        public IHttpActionResult GetAll()
+        {
+            var movies = _MovieService.GetAll();
+            return Ok(movies);
+        }
+
+        [method:
+            HttpPost,
+            AllowAnonymous]
+        public IHttpActionResult Add(Movie movie)
+        {
+           
+            return Ok(movie);
+        }
+
+        //[method:
+        //    HttpPut,
+        //    AllowAnonymous]
+        //public IHttpActionResult Update(CourierDTO courier)
+        //{
+        //    var courierEntity = base._Mapper.Map<CourierDTO, Courier>(courier);
+
+        //    this._CourierService.Edit(courierEntity);
+
+        //    return Ok(base._Mapper.Map<Courier, CourierDTO>(courierEntity));
+        //}
+
+        //[method:
+        //     HttpDelete,
+        //     AllowAnonymous]
+        //public void Delete(long id)
+        //{
+        //    this._CourierService.Delete(id);
+        //}
+
+
+        private MovieService _MovieService;
+
+    }
+}
+
+
+public interface IRepository<T>
+    {
+        List<T> GetAll();
+
+        T Update(T entity);
+
+        void Delete(long id);
+
+        T Add(T entity);
+
+       
+    }
+
+public interface IMovieRepository : IRepository<Movie>
+    {
+    }
+
+
+ public class DataContext : DbContext
+    {
+        public DataContext() : base("Video")
+        {
+        }
+
+        public DbSet<Movie> Movies { get; set; }
+
+        
+    }
+
+
+public class MovieRepository : IMovieRepository
+    {
+        public Movie Add(Movie entity)
+        {
+            var responce = default(Movie);
+            using (var db = new DataContext())
+            {
+                responce = db.Movies.Add(entity);
+                db.SaveChanges();
+            }
+
+            return responce;
+        }
+
+        public void Delete(long id)
+        {
+            var responce = default(Movie);
+            using (var db = new DataContext())
+            {
+                responce = db.Movies.SingleOrDefault(e=>e.Id ==id);
+
+                db.Movies.Remove(responce);
+                db.SaveChanges();
+            }
+
+          
+        }
+
+        public List<Movie> GetAll()
+        {
+            var responce = default(List<Movie>);
+            using (var db = new DataContext())
+            {
+                responce = db.Database.SqlQuery<Movie>("MovieProc 1").ToList();
+            }
+
+            return responce;
+        }
+
+        public Movie Update(Movie entity)
+        {
+            var responce = default(Movie);
+            using (var db = new DataContext())
+            {
+                responce = db.Movies.SingleOrDefault(e => e.Id == entity.Id);
+
+                db.Movies.Remove(responce);
+                db.SaveChanges();
+            }
+
+            return responce;
+        }
+    }
+}
+
+
+
+
+Owin
+
+[assembly:
+    OwinStartup(typeof(Epine.Downloader.WebAPI.Startup))
+]
+
+
+ public class Startup
+    {
+        private static readonly log4net.ILog log =
+            log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        //  private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+
+        #region Instance Methods
+
+        public void Configuration(IAppBuilder app)
+        {
+
+            HttpConfiguration config = new HttpConfiguration();
+
+            ConfigureOAuth(app);
+
+            WebApiConfig.Register(config);
+
+            app.UseCors(Microsoft.Owin.Cors.CorsOptions.AllowAll);
+            app.UseWebApi(config);
+
+            // config.DependencyResolver = UnityBootstrapper.Initialise(new SiteManager(log, Sites.Api));
+            log4net.Config.XmlConfigurator.Configure();
+
+            // Database.SetInitializer(new MigrateDatabaseToLatestVersion<AuthContext, Configuration>());
+
+            config.EnsureInitialized();
+        }
+
+        public void ConfigureOAuth(IAppBuilder app)
+        {
+            //OAuthAuthorizationServerOptions OAuthServerOptions = new OAuthAuthorizationServerOptions()
+            //{
+
+            //    AllowInsecureHttp = true,
+            //    TokenEndpointPath = new PathString("/token"),
+            //    AccessTokenExpireTimeSpan = TimeSpan.FromDays(1),
+            //    Provider = new SimpleRefreshTokenProvider(),
+            //  //  si = new SimpleRefreshTokenProvider()
+            //};
+
+            //// Token Generation
+            //app.UseOAuthAuthorizationServer(OAuthServerOptions);
+            //app.UseOAuthBearerAuthentication(new OAuthBearerAuthenticationOptions());
+
+        }
+
+        #endregion
+    }
+
+
+Microsoft.AspNet.WebApi.WebHost
+Microsoft.Owin.Host
+Microsoft.Owin.Cors
+Microsoft.AspNet.WebApi.Owin.
