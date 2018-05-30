@@ -297,3 +297,24 @@ export class MoviesService {
     </mat-option>
   </mat-select>
 </mat-form-field>
+
+
+<connectionStrings>
+    <add name="Video" connectionString="Data Source=ARCH-NB-071;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=True;ApplicationIntent=ReadWrite;MultiSubnetFailover=False;Initial Catalog=Videos;" providerName="System.Data.SqlClient" />
+  </connectionStrings>
+
+
+  declare @temp_table2 table(
+	LeadKeyID nvarchar(1023),
+	LeadBucket nvarchar(1023),
+	LeadCategory nvarchar(1023),
+	DeliveryCode int,
+	DeliveryStatus nvarchar(1023)
+)
+
+  insert into @temp_result  select distinct t.LeadBucket,t.LeadCategory, 
+  (select SUM(Total) from @temp_table where LeadBucket = t.LeadBucket ) as Total_Leads,
+  (select Total from @temp_table where LeadBucket = t.LeadBucket and statusd = 1) as Success,
+  (select  SUM(Total) from @temp_table where LeadBucket = t.LeadBucket and ( statusd = 0 or  statusd is null) and (desctiprion = 'FAILED' or desctiprion is null)) as Unsuccessful  ,
+  (select Total from @temp_table where LeadBucket = t.LeadBucket and statusd = 0 and desctiprion = 'ScrubFailed') as Scrub_Failed
+
